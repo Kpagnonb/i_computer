@@ -79,10 +79,8 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Innov Invest - I Computer</title>
-    <link rel="stylesheet" href="css/styles.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
 </head>
 <body>
     
@@ -123,30 +121,84 @@ try {
         </nav>
     </header>
 
-	<main>
-		<section class="product-list">
+    <main>
+        <section class="product-list">
             <div class="products-container">
                 <h2 class="products-heading">Nos Produits</h2>
+
+                <!-- Section pour les ordinateurs -->
                 <section class="products">
+                    <h3>Ordinateurs</h3>
                     <?php foreach ($products as $product): ?>
-                        <div class="product">
-                            <a href="detail_produit.php?id=<?= htmlspecialchars($product['IdProduit']) ?>&type=<?= htmlspecialchars($product['type_produit']) ?>">
-                                <img src="<?= htmlspecialchars($product['chemin_image'] ?: 'images/default.jpg') ?>" 
-                                    alt="<?= htmlspecialchars($product['Nom']) ?>">
-                                <h3 class="product-title"><?= htmlspecialchars($product['Nom']) ?></h3>
-                            </a>
-                            <p>Prix: <?= htmlspecialchars($product['Prix']) ?> FCFA</p>
-                            <div class="price-add-to-cart">
+                        <?php if ($product['type_produit'] === 'ordinateur'): ?>
+                            <div class="product">
+                                <!-- Contenu de chaque produit -->
                                 <a href="detail_produit.php?id=<?= htmlspecialchars($product['IdProduit']) ?>&type=<?= htmlspecialchars($product['type_produit']) ?>">
-                                    <i class="bi bi-info-circle"></i> Détails du produit
+                                    <img src="<?= htmlspecialchars($product['chemin_image'] ?: 'images/default.jpg') ?>" 
+                                        alt="<?= htmlspecialchars($product['Nom']) ?>">
+                                    <h3 class="product-title"><?= htmlspecialchars($product['Nom']) ?></h3>
                                 </a>
+                                <p>Prix: <?= htmlspecialchars($product['Prix']) ?> FCFA</p>
+                                <div class="price-add-to-cart">
+                                    <a href="detail_produit.php?id=<?= htmlspecialchars($product['IdProduit']) ?>&type=<?= htmlspecialchars($product['type_produit']) ?>">
+                                        <i class="bi bi-info-circle"></i> Détails du produit
+                                    </a>
+                                </div>
                             </div>
-                        </div>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </section>
+
+                <!-- Section pour les périphériques réseau -->
+                <section class="products">
+                    <h3>Périphériques Réseau</h3>
+                    <?php foreach ($products as $product): ?>
+                        <?php if ($product['type_produit'] === 'peripherique_reseau'): ?>
+                            <div class="product">
+                                <!-- Contenu de chaque produit -->
+                                <a href="detail_produit.php?id=<?= htmlspecialchars($product['IdProduit']) ?>&type=<?= htmlspecialchars($product['type_produit']) ?>">
+                                    <img src="<?= htmlspecialchars($product['chemin_image'] ?: 'images/default.jpg') ?>" 
+                                        alt="<?= htmlspecialchars($product['Nom']) ?>">
+                                    <h3 class="product-title"><?= htmlspecialchars($product['Nom']) ?></h3>
+                                </a>
+                                <p>Prix: <?= htmlspecialchars($product['Prix']) ?> FCFA</p>
+                                <div class="price-add-to-cart">
+                                    <a href="detail_produit.php?id=<?= htmlspecialchars($product['IdProduit']) ?>&type=<?= htmlspecialchars($product['type_produit']) ?>">
+                                        <i class="bi bi-info-circle"></i> Détails du produit
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </section>
+
+                <!-- Section pour la téléphonie -->
+                <section class="products">
+                    <h3>Téléphonie</h3>
+                    <?php foreach ($products as $product): ?>
+                        <?php if ($product['type_produit'] === 'telephonie'): ?>
+                            <div class="product">
+                                <!-- Contenu de chaque produit -->
+                                <a href="detail_produit.php?id=<?= htmlspecialchars($product['IdProduit']) ?>&type=<?= htmlspecialchars($product['type_produit']) ?>">
+                                    <img src="<?= htmlspecialchars($product['chemin_image'] ?: 'images/default.jpg') ?>" 
+                                        alt="<?= htmlspecialchars($product['Nom']) ?>">
+                                    <h3 class="product-title"><?= htmlspecialchars($product['Nom']) ?></h3>
+                                </a>
+                                <p>Prix: <?= htmlspecialchars($product['Prix']) ?> FCFA</p>
+                                <div class="price-add-to-cart">
+                                    <a href="detail_produit.php?id=<?= htmlspecialchars($product['IdProduit']) ?>&type=<?= htmlspecialchars($product['type_produit']) ?>">
+                                        <i class="bi bi-info-circle"></i> Détails du produit
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </section>
+
             </div>
         </section>
-	</main>
+    </main>
+
     <footer>
         <p>&copy; 2024 Innov Invest. Tous droits réservés.</p>
     </footer>
