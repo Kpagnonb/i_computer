@@ -1,0 +1,400 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #F4F4F4; /* Couleur de fond neutre */
+}
+
+header {
+    background-color: #6F42C1; /* Violet pour l'en-tête */
+    color: #FFFFFF; /* Texte en blanc */
+    padding: 1rem;
+    position: relative;
+}
+
+.header-content {
+    margin-bottom: 20px; /* Marge entre le h1 et la barre d'outils */
+}
+
+.header-content h1 {
+    font-size: 3rem; /* Agrandir le titre */
+    margin: 0;
+    text-align: left; /* Aligner le titre à gauche */
+    font-family: 'Georgia', serif; /* Changer la police pour embellir */
+    font-weight: bold; /* Rendre le texte en gras */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Ajouter une ombre portée */
+}
+
+.header-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Marge entre la barre d'outils et la nav */
+}
+
+.cart-container {
+    position: relative;
+    margin-left: auto; /* Déplace le panier à droite */
+}
+
+.cart-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    color: #FF073A;
+    margin-right: 5px;
+}
+
+.cart-count {
+    display: inline-block;
+    position: absolute;
+    top: -10px;
+    right: 15px; /* Ajuste la position du compteur de panier à droite */
+    background: #FF073A;
+    color: #FFFFFF;
+    border-radius: 50%;
+    padding: 4px 8px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.search-bar {
+    text-align: center; /* Centrer le contenu de la barre de recherche */
+    flex-grow: 1; /* Permet à la barre de recherche de s'étendre autant que possible */
+    margin-right: auto; /* Déplace la barre de recherche au milieu */
+}
+
+.search-bar input {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px 0 0 5px;
+}
+
+.search-bar button {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    background-color: #FF073A;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+.search-bar button:hover {
+    background-color: #007BFF;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0; /* Suppression de la marge par défaut */
+    display: flex;
+    justify-content: center;
+    background-color: #007BFF; /* Couleur de la barre de navigation */
+}
+
+nav ul li {
+    margin: 0 10px;
+}
+
+nav ul li a {
+    color: #FFFFFF; /* Texte en blanc */
+    text-decoration: none;
+    padding: 1rem;
+    display: block;
+}
+
+nav ul li a:hover {
+    background-color: #FF073A; /* Couleur de fond au survol */
+    border-radius: 5px;
+}
+
+.hero {
+    background: linear-gradient(135deg, #007BFF, #FF073A, #6F42C1); /* Dégradé bleu-rouge-violet */
+    color: #FFFFFF; /* Texte en blanc */
+    padding: 5rem 1rem;
+    text-align: center;
+}
+
+.products, .product-list, .product-details, .cart, .checkout, .about, .contact {
+    padding: 2rem;
+    background-color: #FFFFFF; /* Fond blanc pour le contenu principal */
+    color: #333333; /* Texte sombre */
+}
+
+.btn {
+    background-color: #FF073A; /* Boutons en rouge */
+    color: #FFFFFF; /* Texte en blanc */
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    border: none; /* Suppression des bordures */
+    cursor: pointer; /* Curseur en forme de main */
+}
+
+.btn:hover {
+    background-color: #007BFF; /* Changement de couleur au survol en bleu */
+}
+
+footer {
+    background-color: #6F42C1; /* Violet pour le pied de page */
+    color: #FFFFFF; /* Texte en blanc */
+    text-align: center;
+    padding: 1rem;
+    /* position: fixed; */
+    bottom: 0;
+    width: 100%;
+}
+
+/* Style pour les images des produits */
+.products-container {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    margin-bottom: 20px;
+}
+
+.products-container .products {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.products-container .product {
+    flex-basis: calc(33.33% - 20px);
+    text-align: center;
+    border: 1px solid transparent;
+    padding: 20px;
+    transition: border-color 0.3s ease;
+    border-radius: 5px;
+}
+
+.products-container .product:hover {
+    border-color: #ccc;
+}
+
+.products-container .product img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.products-container .product-title {
+    text-decoration: none;
+    color: inherit;
+}
+
+.products-container .product a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.products-container .products-heading {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+
+/* Details de produits */
+
+.product-detail {
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    margin-bottom: 20px;
+}
+
+.product-detail h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+.product-content {
+    display: flex;
+    gap: 20px;
+}
+
+.product-content img {
+    max-width: 800px;
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.product-info {
+    text-align: center;
+    flex: 1;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    margin-left: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-info p {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #555;
+}
+
+.product-info #product-price {
+    font-weight: bold;
+    color: #333;
+}
+
+.product-info #add-to-cart {
+    display: inline-block;
+    background-color: blue;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.product-info #add-to-cart:hover {
+    background-color: darkblue;
+    transform: scale(1.05);
+}
+
+
+.suggestions {
+    margin-top: 50px;
+    text-align: center;
+}
+.suggestions h2 {
+    margin-bottom: 30px;
+    font-size: 2em;
+}
+.suggestions-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+.suggestion-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+    width: 250px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+.suggestion-item:hover {
+    transform: scale(1.05);
+}
+.suggestion-image img {
+    height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+.suggestion-item h3 {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+.suggestion-item p {
+    font-size: 1em;
+    color: #666;
+}
+.suggestion-item .btn {
+    background-color: #dc3545;
+    border: none;
+    width: 100%;
+}
+
+
+.quantity {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+}
+
+.quantity input {
+    width: 40px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: 0 5px;
+}
+
+.quantity input[type="button"] {
+    background-color: #f0f0f0;
+    border: none;
+    cursor: pointer;
+}
+
+.quantity input[type="button"]:hover {
+    background-color: #e0e0e0;
+}
+
+.quantity input[type="button"]:active {
+    background-color: #d1d1d1;
+}
+
+.quantity input[type="input"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+.account-menu {
+    position: relative;
+}
+
+.account-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.account-dropdown ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.account-dropdown ul li {
+    padding: 8px 16px;
+}
+
+.account-dropdown ul li a {
+    text-decoration: none;
+    color: #333;
+}
+
+.account-dropdown.active {
+    display: block;
+}

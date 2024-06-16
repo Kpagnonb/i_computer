@@ -1,0 +1,13 @@
+Client : 
+
+jean.dupont@example.com : azerty
+sophie.martin@example.com : azerty
+claire.bernard@example.com : azerty
+
+Admin : 
+
+admin1@example.com : azerty
+admin2@example.com : azerty
+
+
+
