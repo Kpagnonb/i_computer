@@ -22,23 +22,24 @@ try {
         throw new Exception("Client introuvable avec l'ID : $client_id");
     }
 
-    // Requête pour récupérer tous les produits avec une image associée depuis la base de données produit
+        // Requête pour récupérer tous les produits avec une image associée depuis la base de données produit
     $sql_produits = "
-        SELECT 
+        (SELECT 
             'ordinateur' AS type_produit,
             o.IdProduit,
             o.Nom,
-            o.Processeur AS attribut_specifique,
-            o.RAM AS autre_attribut,
+            o.Modele,
+            o.Marque,
             o.Prix,
-            MAX(i.chemin_image) AS chemin_image
+            i.chemin_image AS chemin_image
         FROM ordinateurs o
         LEFT JOIN images i ON o.IdProduit = i.id_produit
-        GROUP BY o.IdProduit
+        ORDER BY RAND() 
+        LIMIT 1)
         
         UNION
         
-        SELECT 
+        (SELECT 
             'peripherique_reseau' AS type_produit,
             pr.IdProduit,
             pr.Nom,
@@ -49,10 +50,12 @@ try {
         FROM peripheriques_reseaux pr
         LEFT JOIN images_peripheriques_reseaux ipr ON pr.IdProduit = ipr.id_produit
         GROUP BY pr.IdProduit
+        ORDER BY RAND() 
+        LIMIT 1)
         
         UNION
         
-        SELECT 
+        (SELECT 
             'telephonie' AS type_produit,
             t.IdProduit,
             t.Nom,
@@ -63,9 +66,36 @@ try {
         FROM telephonie t
         LEFT JOIN images_telephonie it ON t.IdProduit = it.id_produit
         GROUP BY t.IdProduit
+        ORDER BY RAND() 
+        LIMIT 1)
     ";
-    $stmt_produits = $pdo_produit->query($sql_produits); // Utilisation de $pdo_produit pour les produits
+    $stmt_produits = $pdo_produit->query($sql_produits);
     $products = $stmt_produits->fetchAll(PDO::FETCH_ASSOC);
+
+    // Requête pour récupérer un produit aléatoire de la base de données
+    $sql_ordi_random = "
+    SELECT 
+        'ordinateur' AS type_produit,
+        o.IdProduit,
+        o.Nom,
+        o.Modele,
+        o.Processeur AS attribut_specifique,
+        o.RAM AS autre_attribut,
+        o.Marque,
+        o.Prix,
+        i.chemin_image AS chemin_image
+    FROM ordinateurs o
+    LEFT JOIN images i ON o.IdProduit = i.id_produit
+    ORDER BY RAND() 
+    LIMIT 1
+    ";
+
+    $stmt_ordi_random = $pdo_produit->query($sql_ordi_random);
+    $ordi = $stmt_ordi_random->fetch(PDO::FETCH_ASSOC);
+
+    if (!$ordi) {
+        throw new Exception("Aucun produit trouvé.");
+    }
 } catch (PDOException $e) {
     echo 'Erreur de connexion : ' . $e->getMessage();
     exit;
@@ -76,92 +106,640 @@ try {
 ?>
 
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innov Invest - I Computer</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Acceuil - Innov Computer</title>
+
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.5.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
 </head>
+<style>
+    .barre{
+        width: 100%;
+        height: 50px;
+        background-color: #333;
+    }
+    .grand2{
+        display: flex;
+        flex-direction: row;
+        
+    }
+    .sous1{
+        display: flex;
+        flex-direction: column;
+        
+    }
+    .sous{
+        color: white;
+        text-align: center;
+    }
+    .grand1{
+        background: black;
+        width: 450px;
+        height: 450px;
+        margin-top: -50px;
+        color: white;
+        padding: 40px;
+    }
+    .miniblock{
+      width: 40px;
+      height: 40px;
+    }
+    .miniblock:hover{
+      border: 1px solid rgb(182, 178, 178);
+      border-radius: 10px;
+    }
+    .miniblock2{
+      width: 90px;
+      height: 40px;
+      border-radius: 15px;
+      border: 1px solid black;
+      background-color: black;
+      
+    }
+    /* button */
+    .button {
+        display: inline-block;
+        padding: 12px 24px;
+        border: 1px solid #4f4f4f;
+        border-radius: 4px;
+        transition: all 0.2s ease-in;
+        position: relative;
+        overflow: hidden;
+        font-size: 19px;
+        cursor: pointer;
+        color: black;
+        z-index: 1;
+        width: 200px;
+        margin-top: 50px;
+        background-color: #f3efef
+        ;
+        text-transform: capitalize;
+        font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    }
+    .button:before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%) scaleY(1) scaleX(1.25);
+        top: 100%;
+        width: 140%;
+        height: 180%;
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 50%;
+        display: block;
+        transition: all 0.5s 0.1s cubic-bezier(0.55, 0, 0.1, 1);
+        z-index: -1;
+    }
+    .button:after {
+        content: "";
+        position: absolute;
+        left: 55%;
+        transform: translateX(-50%) scaleY(1) scaleX(1.45);
+        top: 180%;
+        width: 160%;
+        height: 190%;
+        background-color: #9d1cba;
+        border-radius: 50%;
+        display: block;
+        transition: all 0.5s 0.1s cubic-bezier(0.55, 0, 0.1, 1);
+        z-index: -1;
+    }
+    .button:hover {
+        color: #ffffff;
+        border: 1px solid #9d1cba;
+    }
+    .button:hover:before {
+        top: -35%;
+        background-color: #9d1cba;
+        transform: translateX(-50%) scaleY(1.3) scaleX(0.8);
+    }
+    .button:hover:after {
+        top: -45%;
+        background-color: #9d1cba;
+        transform: translateX(-50%) scaleY(1.3) scaleX(0.8);
+    }
+    /* pour les svg  */
+    .svg:hover{
+        transform: translateY(-10px);
+        transition: 2s;
+    
+    }
+    .block-sous{
+        display: flex;
+        flex-direction: column;
+    }
+    body{
+        background-color: #f3efef;
+    }
+        .text2{
+        color: black;
+    }
+    a{
+        list-style-type: none;
+        text-decoration: none;
+    }
+    .account-menu {
+        position: relative;
+        display: flex;
+        align-items: center;
+        color: white;
+        z-index: 10;
+        margin-right: 15px;
+    }
+    .account-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: rgb(7, 7, 61);
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        z-index: 20;
+    }
+    .account-dropdown.active {
+        display: block; 
+    }
+    .account-dropdown ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .account-dropdown li {
+        padding: 10px;
+    }
+    .account-dropdown li a {
+        color: white;
+        text-decoration: none;
+    }
+    .cart-container {
+        position: relative;
+        margin-left: auto; 
+        margin-right: 20px; 
+    }
+
+    .cart-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        margin-right: 5px;
+    }
+
+    .cart-count {
+        display: inline-block;
+        position: absolute;
+        top: -10px;
+        right: 25px; /* Ajuste la position du compteur de panier à droite */
+        background: #FF073A;
+        color: #FFFFFF;
+        border-radius: 50%;
+        padding: 4px 8px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    /* @media (max-width: 1068px) {
+    .header{
+        height: 200px;
+    }
+        
+        .carousel-item {
+        display: flex;
+        flex-direction: column-reverse;
+        width: 100%;
+
+        }
+    .text{
+        font-size: 1rem;
+        text-align: center;
+        width: 100%;
+    }
+    .soustext{
+    color: #2145e7;
+    font-size: 0.5rem;
+    width: 100%;
+
+    }
+    .sousp{
+    text-align: center;
+    width: 500px;
+    }
+    } */
+</style>
+
 <body>
     <header>
-        <div class="header-content">
-            <h1>Innov Invest</h1>
+        <!-- pour la petite barre -->
+        <div class="barre">
+            <!-- réseaux sociaux -->
+            <ul class="ul">
+                <li class="li">
+                    <a href="https://www.facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                </li>
+                <li class="li">
+                    <a href="https://www.twitter.com" target="_blank"><i class="fab fa-twitter"></i></a>
+                </li>
+                <li class="li">
+                    <a href="https://www.instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+                </li>
+            </ul>
         </div>
-        
-        <div class="header-toolbar">
-            <div class="search-bar">
-                <input type="text" placeholder="Rechercher des produits..." id="searchInput">
-                <button type="button" onclick="searchProducts()">Rechercher</button>
-            </div>
-            <div class="account-menu">
-                <a href="#" onclick="toggleAccountMenu()">
-                    <i class="bi bi-person-circle"></i>
-                    <span><?= htmlspecialchars($client['nom']) ?></span>
-                </a>
-                <div class="account-dropdown">
-                    <ul>
-                        <li><a href="#">Mon Compte</a></li>
-                        <li><a href="../deconnexion.php">Déconnexion</a></li>
+
+        <!-- la navbar -->
+        <nav class="navbar navbar-expand-lg" style="background-color: rgb(7, 7, 61);display: flex;width: 100%;">
+            <div class="container-fluid" style="display: flex;justify-content: space-between;width: 100%;flex-direction: row;">
+                <a class="navbar-brand" href="#" style="color: white;"><b>NOTRE ENTREPRISE</b></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent" style="margin-left: 25%;">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item active">
+                            <a class="nav-link active" aria-current="page" href="index.php" style="color: white;"><b>Accueil</b></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="produit.php" style="color: white;"><b>Produits</b></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="panier.php" style="color: white;"><b>Panier</b></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" style="color: white;"><b>A propos</b></a>
+                        </li>
                     </ul>
                 </div>
+                <div class="d-flex align-items-center">
+                    <div class="account-menu">
+                        <a href="#" onclick="toggleAccountMenu()">
+                            <i class="bi bi-person-circle"></i>
+                            <span><?= htmlspecialchars($client['nom']) ?></span>
+                        </a>
+                        <div class="account-dropdown">
+                            <ul>
+                                <li><a href="#">Mon Compte</a></li>
+                                <li><a href="../deconnexion.php">Déconnexion</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <span class="cart-container ms-3">
+                        <a href="panier.php" onclick="showCart()">
+                            <i class="bi bi-cart cart-icon"></i>
+                            <span class="cart-count">0</span>
+                        </a>
+                    </span>
+                </div>
             </div>
-            <span class="cart-container">
-                <a href="panier.php" onclick="showCart()">
-                    <i class="bi bi-cart cart-icon"></i>
-                    <span class="cart-count">0</span>
-                </a>
-            </span>
-        </div>
-
-        <nav>
-            <ul>
-                <li><a href="index.php">Accueil</a></li>
-                <li><a href="produit.php">Produits</a></li>
-                <li><a href="panier.php">Panier</a></li>
-            </ul>
         </nav>
-    </header>
 
-    <section class="hero">
-            <h2>Bienvenue chez I Computer</h2>
-            <p>Des ordinateurs haute performance fabriqués en Côte d'Ivoire</p>
-            <?php if (isset($client['nom'])): ?>
-                <p>Bienvenue, <?= htmlspecialchars($client['nom']) ?></p>
-            <?php endif; ?>
-            <a href="produit.php" class="btn">Acheter maintenant</a>
+        <div class="row d-none d-xl-block d-xxl-none">
+            <div class="header-" style="background-color: black;color: white;height: 700px;align-items: center;justify-content: center;display: flex;">
+                    <!-- carrousel de header xl -->
+                <div id="carouselExample" class="carousel slide" style="width: 100%;height: 600px;align-items: center;">
+                    <div class="carousel-inner" style="width: 100%;">
+                        <div class="carousel-item active" style="display: flex;justify-content: space-evenly;width: 100%;margin: 20px;">
+                            <div class="col-xl-6 ">
+                                <div class="text">
+                                    <span>
+                                        <h1 class="soustext" style="font-size: 5rem;margin: 20px;">
+                                            <b>INNOVSHOP</b>
+                                        </h1>
+                                        <p class="sousp" style="width: 400px;margin: 20px;">Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatum optio architecto iure unde minima molestias rem labore, tenetur ex voluptate officiis! Debitis quos cupiditate laudantium, ullam maxime reprehenderit harum nesciunt.</p>
+                                        <button type="submit" style="margin: 20px;border: 1px solid white;background-color: none;background: none;width: 150px;height: 60px;color: white;text-transform: capitalize;"><b>nous connaitre</b></button>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-xl-6 ">
+                            <img src="../utilisateur/images/42104cfab7adc4d7cf53145067445fb5.gif" class="d-block" alt="img" width="700px">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </header> 
+
+    <section class="container-fluid" style="width: 100%;text-align: center;display: flex;justify-content: center;padding-top: 30px;">
+        <div class="text" style="width: 500px;">
+            <h3><B>-QUI SOMME NOUS ?-</B></h3><br>
+            <SPAN style="width: 400px;">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Rem, reprehenderit nihil! Nam cumque error neque, nesciunt, est corrupti quo deleniti incidunt deserunt sunt alias sapiente qui odit saepe dolor similique.</SPAN><br>
+            <button class="button" type="submit"><b>nous connaitre</b></button>
+        </div>
+         
+    </section>   
+    <!-- nos services pour tout sauf les lg,xl,xxl -->
+    <section class="container-fluid" style="width: 100%;text-align: center;display: flex;justify-content: center;padding-top: 30px;margin-top: 100px;">
+       <div class="all" style="display: flex;">
+            <div class="col d-none d-xxl-block d-lg-block d-xl-block d-md-block">
+                <div class="grand1">
+                    <h3><b>Vente de PC de Haute Qualité</b></h3>
+                    <span>Notre entreprise propose une large gamme d'ordinateurs de haute qualité, adaptés à tous les besoins, que ce soit pour un usage professionnel, personnel ou gaming. Nous sélectionnons uniquement les meilleures marques et modèles pour garantir des performances optimales et une fiabilité exceptionnelle.</span>
+                </div>
+            </div>
+            <div class="col  d-none d-xxl-block d-lg-block d-xl-block d-md-block">
+                <div class="grand2" >
+                    <div class="sous1">
+                        <div class="sous" style="background-color: rgb(61, 61, 255);width: 200px;height: 200px;padding: 30px;">
+                            <div class="svg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-brush" viewBox="0 0 16 16">
+                                    <path d="M15.825.12a.5.5 0 0 1 .132.584c-1.53 3.43-4.743 8.17-7.095 10.64a6.1 6.1 0 0 1-2.373 1.534c-.018.227-.06.538-.16.868-.201.659-.667 1.479-1.708 1.74a8.1 8.1 0 0 1-3.078.132 4 4 0 0 1-.562-.135 1.4 1.4 0 0 1-.466-.247.7.7 0 0 1-.204-.288.62.62 0 0 1 .004-.443c.095-.245.316-.38.461-.452.394-.197.625-.453.867-.826.095-.144.184-.297.287-.472l.117-.198c.151-.255.326-.54.546-.848.528-.739 1.201-.925 1.746-.896q.19.012.348.048c.062-.172.142-.38.238-.608.261-.619.658-1.419 1.187-2.069 2.176-2.67 6.18-6.206 9.117-8.104a.5.5 0 0 1 .596.04M4.705 11.912a1.2 1.2 0 0 0-.419-.1c-.246-.013-.573.05-.879.479-.197.275-.355.532-.5.777l-.105.177c-.106.181-.213.362-.32.528a3.4 3.4 0 0 1-.76.861c.69.112 1.736.111 2.657-.12.559-.139.843-.569.993-1.06a3 3 0 0 0 .126-.75zm1.44.026c.12-.04.277-.1.458-.183a5.1 5.1 0 0 0 1.535-1.1c1.9-1.996 4.412-5.57 6.052-8.631-2.59 1.927-5.566 4.66-7.302 6.792-.442.543-.795 1.243-1.042 1.826-.121.288-.214.54-.275.72v.001l.575.575zm-4.973 3.04.007-.005zm3.582-3.043.002.001h-.002z"/>
+                                </svg>
+                            </div>
+                            <h6><b>Design Personnalisé des Coques Arrière</b></h6><br>
+                        </div>
+                        <div class="sous" style="background-color: rgb(173, 25, 223);width: 200px;height: 200px;padding: 30px;">
+                            <div class="svg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-person-lines-fill" viewBox="0 0 16 16">
+                                    <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1z"/>
+                                </svg>
+                            </div>
+                            <h6><b>Support Client Dédié</b></h6><br>
+                        </div>
+                    </div>
+                    <div class="sous1">
+                        <div class="sous" style="background-color: rgb(173, 25, 223);width: 200px;height: 200px;padding: 30px;">
+                            <div class="svg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-bezier" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M0 10.5A1.5 1.5 0 0 1 1.5 9h1A1.5 1.5 0 0 1 4 10.5v1A1.5 1.5 0 0 1 2.5 13h-1A1.5 1.5 0 0 1 0 11.5zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm10.5.5A1.5 1.5 0 0 1 13.5 9h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zM6 4.5A1.5 1.5 0 0 1 7.5 3h1A1.5 1.5 0 0 1 10 4.5v1A1.5 1.5 0 0 1 8.5 7h-1A1.5 1.5 0 0 1 6 5.5zM7.5 4a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"/>
+                                    <path d="M6 4.5H1.866a1 1 0 1 0 0 1h2.668A6.52 6.52 0 0 0 1.814 9H2.5q.186 0 .358.043a5.52 5.52 0 0 1 3.185-3.185A1.5 1.5 0 0 1 6 5.5zm3.957 1.358A1.5 1.5 0 0 0 10 5.5v-1h4.134a1 1 0 1 1 0 1h-2.668a6.52 6.52 0 0 1 2.72 3.5H13.5q-.185 0-.358.043a5.52 5.52 0 0 0-3.185-3.185"/>
+                                </svg>
+                            </div>
+                            <h6><b>Solutions Complètes et Personnalisées</b></h6><br>
+                        </div>
+                        <div class="sous" style="background-color: rgb(61, 61, 255);width: 200px;height: 200px;padding: 20px;">
+                          <div class="svg">  <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                            <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
+                            <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
+                          </svg></div>
+                        
+                            <h6><b>Service de Réparation Rapide et Fiable</b></h6><br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section> 
+        <!-- nos services pour les xs  -->
+    <section class="container-fluid" style="width: 100%;text-align: center;display: flex;justify-content: center;padding-top: 30px;margin-top: 00px;">
+        <div class="all" style="">
+            <div class="col d-block d-sm-none">
+                <div class="grand1">
+                    <h3><b>Vente de PC de Haute Qualité</b></h3>
+                    <span>Notre entreprise propose une large gamme d'ordinateurs de haute qualité, adaptés à tous les besoins, que ce soit pour un usage professionnel, personnel ou gaming. Nous sélectionnons uniquement les meilleures marques et modèles pour garantir des performances optimales et une fiabilité exceptionnelle.</span>
+                </div>
+            </div>
+            <div class="col d-block d-sm-none">
+                <div class="grand2" style="display: flex;align-items: center;justify-content: center;">
+                    <div class="sous1">
+                        <div class="sous" style="background-color: rgb(61, 61, 255);width: 200px;height: 200px;padding: 30px;">
+                            <div class="svg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-brush" viewBox="0 0 16 16">
+                                    <path d="M15.825.12a.5.5 0 0 1 .132.584c-1.53 3.43-4.743 8.17-7.095 10.64a6.1 6.1 0 0 1-2.373 1.534c-.018.227-.06.538-.16.868-.201.659-.667 1.479-1.708 1.74a8.1 8.1 0 0 1-3.078.132 4 4 0 0 1-.562-.135 1.4 1.4 0 0 1-.466-.247.7.7 0 0 1-.204-.288.62.62 0 0 1 .004-.443c.095-.245.316-.38.461-.452.394-.197.625-.453.867-.826.095-.144.184-.297.287-.472l.117-.198c.151-.255.326-.54.546-.848.528-.739 1.201-.925 1.746-.896q.19.012.348.048c.062-.172.142-.38.238-.608.261-.619.658-1.419 1.187-2.069 2.176-2.67 6.18-6.206 9.117-8.104a.5.5 0 0 1 .596.04M4.705 11.912a1.2 1.2 0 0 0-.419-.1c-.246-.013-.573.05-.879.479-.197.275-.355.532-.5.777l-.105.177c-.106.181-.213.362-.32.528a3.4 3.4 0 0 1-.76.861c.69.112 1.736.111 2.657-.12.559-.139.843-.569.993-1.06a3 3 0 0 0 .126-.75zm1.44.026c.12-.04.277-.1.458-.183a5.1 5.1 0 0 0 1.535-1.1c1.9-1.996 4.412-5.57 6.052-8.631-2.59 1.927-5.566 4.66-7.302 6.792-.442.543-.795 1.243-1.042 1.826-.121.288-.214.54-.275.72v.001l.575.575zm-4.973 3.04.007-.005zm3.582-3.043.002.001h-.002z"/>
+                                </svg>
+                            </div>
+                            <h6><b>Design Personnalisé des Coques Arrière</b></h6><br>
+                        </div>
+                        <div class="sous" style="background-color: rgb(173, 25, 223);width: 200px;height: 200px;padding: 30px;">
+                            <div class="svg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-person-lines-fill" viewBox="0 0 16 16">
+                                    <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1z"/>
+                                </svg>
+                            </div>                
+                            <h6><b>Support Client Dédié</b></h6><br>
+                        </div>
+                </div>
+                <div class="sous1">
+                    <div class="sous" style="background-color: rgb(173, 25, 223);width: 200px;height: 200px;padding: 30px;">
+                        <div class="svg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-bezier" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M0 10.5A1.5 1.5 0 0 1 1.5 9h1A1.5 1.5 0 0 1 4 10.5v1A1.5 1.5 0 0 1 2.5 13h-1A1.5 1.5 0 0 1 0 11.5zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm10.5.5A1.5 1.5 0 0 1 13.5 9h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1a1.5 1.5 0 0 1-1.5-1.5zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zM6 4.5A1.5 1.5 0 0 1 7.5 3h1A1.5 1.5 0 0 1 10 4.5v1A1.5 1.5 0 0 1 8.5 7h-1A1.5 1.5 0 0 1 6 5.5zM7.5 4a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"/>
+                                <path d="M6 4.5H1.866a1 1 0 1 0 0 1h2.668A6.52 6.52 0 0 0 1.814 9H2.5q.186 0 .358.043a5.52 5.52 0 0 1 3.185-3.185A1.5 1.5 0 0 1 6 5.5zm3.957 1.358A1.5 1.5 0 0 0 10 5.5v-1h4.134a1 1 0 1 1 0 1h-2.668a6.52 6.52 0 0 1 2.72 3.5H13.5q-.185 0-.358.043a5.52 5.52 0 0 0-3.185-3.185"/>
+                            </svg>
+                        </div>                      
+                         <h6><b>Solutions Complètes et Personnalisées</b></h6><br>
+                    </div>
+                    <div class="sous" style="background-color: rgb(61, 61, 255);width: 200px;height: 200px;padding: 20px;">
+                       <div class="svg">  
+                            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                                <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
+                                <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
+                            </svg>
+                        </div>
+                     
+                         <h6><b>Service de Réparation Rapide et Fiable</b></h6><br>
+                    </div>
+                </div>
+            </div>
+           </div>
+    </section> 
+
+    <!-- pour les produits -->
+    <section class="produits" style="margin-top: 100px;">
+        <div class="container" style="background-color: rgb(255, 255, 255);width: 100%;display: flex;flex-direction: row;justify-content: center;height: 600px;">
+            <div class="gauche" style="width: 30%;background-color: #2145e7;margin-left: -10px;">
+                <div class="h1" style="border-top: 1px solid rgb(255, 255, 255);font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;text-align: center;padding: 10px;color: white;">
+                    <h1><b>Nos Meilleurs</b> Ventes</h1>
+                </div>
+                <div class="lorem" style="width:350px ;padding: 50px;font-family: Arial, Helvetica, sans-serif;color: rgb(201, 195, 195);">Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsa voluptas illum, id totam rerum velit, minus, explicabo assumenda ut iste qui. Facilis odit accusamus quibusdam omnis iusto amet odio doloremque.</div>
+                    <br>
+                    <div class="sous-container" style="margin-top: -30px;">
+                        <div class="block" style="display: flex;flex-direction: row;text-align: center;justify-content: center;">
+                            <div class="block-sous" style="background-color: rgb(235, 198, 12);width: 90px;height: 90px;">
+                                <!-- pour le svg -->
+                            </div>
+                            <div class="block-sous" style="background-color: rgb(35, 129, 235);width: 90px;height: 90px;">
+                                <!-- pour le svg -->
+                            </div>
+                        </div>
+                        <div class="block" style="display: flex;flex-direction: row;text-align: center;justify-content: center">
+                            <div class="block-sous" style="background-color: rgb(35, 129, 235);width: 90px;height: 90px;">
+                                <!-- pour le svg -->
+                            </div>
+                            <div class="block-sous" style="background-color: rgb(235, 198, 12);width: 90px;height: 90px;">
+                                <!-- pour le svg -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="milieu" style="width: 70%;">
+                    <!-- pour le carrousel -->
+                    <div id="carouselExampleDark" class="carousel carousel-dark slide">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <?php if (!empty($ordi['chemin_image'])): ?>
+                                    <img src="<?php echo $ordi['chemin_image']; ?>" alt="<?php echo $ordi['Nom']; ?>" width="600px" height="400px" class="d-block">
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <!-- Contrôles du carousel (boutons précédent et suivant) -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+
+                    <div class="text" style="text-align: start; margin: 10px; font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;">
+                        <div class="mini" style="display: flex; justify-content: space-around;">
+                            <div class="mini1" style="display: flex;"></div>
+                            <div class="mini2" style="display: flex;">
+                                <h2><b><?php echo $ordi['Modele']; ?></b></h2>
+                                <?php if (!empty($ordi['RAM'])): ?>
+                                    <div class="p" style="background-color: rgb(157, 157, 157); height: 30px; border-radius: 4px; padding: 7px; margin: 10px;"><?php echo $ordi['RAM']; ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($ordi['Stockage'])): ?>
+                                    <div class="p" style="background-color: rgb(157, 157, 157); height: 30px; border-radius: 4px; padding: 7px; margin: 10px;"><?php echo $ordi['Stockage']; ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($ordi['OS'])): ?>
+                                    <div class="p" style="background-color: rgb(157, 157, 157); height: 30px; border-radius: 4px; padding: 7px; margin: 10px;"><?php echo $ordi['OS']; ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <p style="color: #4f4f4f;"><?php echo $ordi['Marque']; ?></p>
+                        <p style="color: brown; font-size: 1.4rem;"><b><?php echo number_format($ordi['Prix'], 0, ',', ' '); ?> FCFA</b></p>
+                        <a href="detail_produit.php?id=<?= htmlspecialchars($ordi['IdProduit']) ?>&type=<?= htmlspecialchars($ordi['type_produit']) ?>" class="button" style="width: 150px; margin-top: -2px; height: 50px; background-color: #2145e7; color: white;">voir plus</a>
+                    </div>
+                </div>
+                <div class="droite" style="width: 30%;">
+                    <div class="h1" style="border-top: 1px solid rgb(255, 255, 255);font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;text-align: center;padding: 10px;color: white;">
+                        <h1 style="color: black;"><b>Nos services</b> Populaire</h1>
+                        <?php foreach ($products as $product): ?>
+                            <div class="conent" style="display: flex;flex-direction: row;border-top: 1px solid black;border-bottom: 1px solid black;">
+                                <div class="img" style="border: 2px solid blue;display: flex;justify-content: center;align-items: center;padding: 10px;margin: 10px;">
+                                    <img src="<?php echo htmlspecialchars($product['chemin_image']); ?>" alt="<?php echo htmlspecialchars($product['Nom']); ?>" width="70px" height="70px">
+                                </div>
+                                <div class="text2" style="text-align: start;display: flex;flex-direction: column;justify-content:center;align-items: center;">
+                                    <h5 style="color: #706e6e;font-family: Arial, Helvetica, sans-serif; text-align: center;padding: 10px;">
+                                        <?php echo ucfirst($product['type_produit']); ?> : <?php echo htmlspecialchars($product['Nom']); ?>
+                                    </h5>
+                                    <a href="detail_produit.php?id=<?php echo htmlspecialchars($product['IdProduit']); ?>&type=<?php echo htmlspecialchars($product['type_produit']); ?>" style="font-size: 1rem;text-align: end;list-style-type: none;text-decoration: none;color: brown;">voir plus</a>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div> 
     </section>
 
-    <div class="products-container">
-        <h2 class="products-heading">Nos Produits</h2>
-        <section class="products">
+     <!-- pour la liste des dernieres sorties  -->
+    <section class="container" style="margin-top: 100px;">
+        <h1 style="color: black;text-align: center;font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;"><b>nos dernieres sorties</b></h1><br>
+        <div class="tout1" style="display: flex;justify-content: center;">
             <?php foreach ($products as $product): ?>
-                <div class="product">
-                    <a href="detail_produit.php?id=<?= htmlspecialchars($product['IdProduit']) ?>&type=<?= htmlspecialchars($product['type_produit']) ?>">
-                        <img src="<?= htmlspecialchars($product['chemin_image'] ?: 'images/default.jpg') ?>" 
-                            alt="<?= htmlspecialchars($product['Nom']) ?>">
-                        <h3 class="product-title"><?= htmlspecialchars($product['Nom']) ?></h3>
-                    </a>
-                    <p>Prix: <?= htmlspecialchars($product['Prix']) ?> FCFA</p>
-                    <div class="price-add-to-cart">
-                        <a href="detail_produit.php?id=<?= htmlspecialchars($product['IdProduit']) ?>&type=<?= htmlspecialchars($product['type_produit']) ?>">
-                            <i class="bi bi-info-circle"></i> Détails du produit
-                        </a>
+                <div class="miniblock3" style="display: flex;width: 300px;height: 400px;flex-direction: column;">
+                    <div class="minimini">
+                        <img src="<?php echo htmlspecialchars($product['chemin_image']); ?>" alt="<?php echo htmlspecialchars($product['Nom']); ?>" width="300px">
+                    </div>
+                    <div class="minimini" style="padding: 20px;">
+                        <h3><?php echo htmlspecialchars($product['type_produit']); ?></h3>
+                        <p><?php echo htmlspecialchars($product['Nom']); ?></p>
+                        <p><?php echo htmlspecialchars(number_format($product['Prix'], 0, ',', ' ')); ?> FCFA</p>
+                        <a href="detail_produit.php?id=<?php echo htmlspecialchars($product['IdProduit']); ?>&type=<?php echo htmlspecialchars($product['type_produit']); ?>" style="font-size: 1rem;text-align: end;list-style-type: none;text-decoration: none;color: brown;">voir plus</a>
                     </div>
                 </div>
             <?php endforeach; ?>
-        </section>
-    </div>
+        </div>
+    </section>
 
-    <!-- Inclure le script JavaScript -->
-     <script>
+    <!-- section pour la partie aide  -->
+    <section style="background-color: #2145e7;height: 150px;margin-top: 100px;">
+        <div class="container" style="display: flex;justify-content: space-around;align-items: center;">
+            <div class="text8" style="text-align: center;color: white;">
+                <p style="font-size: 1.3rem;"><b>Vous avez besoin d'aide ? contactez le service client !</b></p>
+                <p  style="font-size: 1.3rem;">support technique 24/7 au <b>+225 0142622547</b></p>
+            </div>
+            <div class="imput">
+                <input type="email" name="mail" id="mail" placeholder="Entrez votre mail" style="width: 350px;height: 53px;">
+                <button type="submit" class="button">envoyer</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- pour le footer  -->
+    <footer style="background-color: rgba(0, 0, 0, 0.91);">
+        <div class="container" style="display: flex;justify-content: space-around;">
+            <div class="footersous">
+                <ul>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">A propos</a></li>
+                    <li><a href="produit.php" style="text-decoration: none;list-style-type: none;color: white;">Produit</a></li>
+                    <li><a href="index.php" style="text-decoration: none;list-style-type: none;color: white;">Acceuil</a></li>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footersous">
+                <ul>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">Ordinateur Portable</a></li>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">Ordinateur Sans Fil</a></li>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">Tablettes</a></li>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">Peripheriques</a></li>
+                </ul>
+            </div>
+            <div class="footersous">
+                <ul>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">Personalisation Pc</a></li>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">Personalisation Ordninateur Mobile</a></li>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">Personalisation Peripherique</a></li>
+                    <li><a href="#" style="text-decoration: none;list-style-type: none;color: white;">Personalisation Tablette</a></li>
+                </ul>
+            </div>
+            <div class="footersous" style="background-color: #9d1cba;color: white;height: 200px;">
+              <ul>
+                <li>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" class="bi bi-geo-fill" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M4 4a4 4 0 1 1 4.5 3.969V13.5a.5.5 0 0 1-1 0V7.97A4 4 0 0 1 4 3.999zm2.493 8.574a.5.5 0 0 1-.411.575c-.712.118-1.28.295-1.655.493a1.3 1.3 0 0 0-.37.265.3.3 0 0 0-.057.09V14l.002.008.016.033a.6.6 0 0 0 .145.15c.165.13.435.27.813.395.751.25 1.82.414 3.024.414s2.273-.163 3.024-.414c.378-.126.648-.265.813-.395a.6.6 0 0 0 .146-.15l.015-.033L12 14v-.004a.3.3 0 0 0-.057-.09 1.3 1.3 0 0 0-.37-.264c-.376-.198-.943-.375-1.655-.493a.5.5 0 1 1 .164-.986c.77.127 1.452.328 1.957.594C12.5 13 13 13.4 13 14c0 .426-.26.752-.544.977-.29.228-.68.413-1.116.558-.878.293-2.059.465-3.34.465s-2.462-.172-3.34-.465c-.436-.145-.826-.33-1.116-.558C3.26 14.752 3 14.426 3 14c0-.599.5-1 .961-1.243.505-.266 1.187-.467 1.957-.594a.5.5 0 0 1 .575.411"/>
+                    </svg> <a href="" style="text-decoration: none;list-style-type: none;color: white;">Rembals, Koumassi, Abidjan, Côte d'Ivoire</a></li>
+                <li>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" class="bi bi-telephone-fill" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877z"/>
+                    </svg><a href="" style="text-decoration: none;list-style-type: none;color: white;">+225 07 79 79 71 04</a></li>
+                <li>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="currentColor" class="bi bi-envelope-at-fill" viewBox="0 0 16 16">
+                      <path d="M2 2A2 2 0 0 0 .05 3.555L8 8.414l7.95-4.859A2 2 0 0 0 14 2zm-2 9.8V4.698l5.803 3.546zm6.761-2.97-6.57 4.026A2 2 0 0 0 2 14h6.256A4.5 4.5 0 0 1 8 12.5a4.49 4.49 0 0 1 1.606-3.446l-.367-.225L8 9.586zM16 9.671V4.697l-5.803 3.546.338.208A4.5 4.5 0 0 1 12.5 8c1.414 0 2.675.652 3.5 1.671"/>
+                      <path d="M15.834 12.244c0 1.168-.577 2.025-1.587 2.025-.503 0-1.002-.228-1.12-.648h-.043c-.118.416-.543.643-1.015.643-.77 0-1.259-.542-1.259-1.434v-.529c0-.844.481-1.4 1.26-1.4.585 0 .87.333.953.63h.03v-.568h.905v2.19c0 .272.18.42.411.42.315 0 .639-.415.639-1.39v-.118c0-1.277-.95-2.326-2.484-2.326h-.04c-1.582 0-2.64 1.067-2.64 2.724v.157c0 1.867 1.237 2.654 2.57 2.654h.045c.507 0 .935-.07 1.18-.18v.731c-.219.1-.643.175-1.237.175h-.044C10.438 16 9 14.82 9 12.646v-.214C9 10.36 10.421 9 12.485 9h.035c2.12 0 3.314 1.43 3.314 3.034zm-4.04.21v.227c0 .586.227.8.581.8.31 0 .564-.17.564-.743v-.367c0-.516-.275-.708-.572-.708-.346 0-.573.245-.573.791"/>
+                    </svg><a href="" style="text-decoration: none;list-style-type: none;color: white;">infos@innovinvest.ci</a></li>
+                <li><a href="" style="text-decoration: none;list-style-type: none;color: white;">
+                  <!-- pour facebook  -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-facebook" viewBox="0 0 16 16">
+                      <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/>
+                    </svg>
+                  <!-- whatssapp  -->
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+                      <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+                    </svg>
+              
+                 </a></li>
+              </ul>
+            </div>
+        </div>
+    </footer>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="js/cart.js"></script>
+    <script>
         function toggleAccountMenu() {
             const accountDropdown = document.querySelector('.account-dropdown');
-            accountDropdown.classList.toggle('active');
+            accountDropdown.classList.toggle('active'); // Toggle la classe 'active' pour afficher ou masquer
         }
-     </script>
-    <script src="js/cart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        // Écouteur d'événement pour fermer le menu en cliquant en dehors de celui-ci
+        window.addEventListener('click', function(event) {
+            if (!event.target.closest('.account-menu')) {
+                const accountDropdowns = document.querySelectorAll('.account-dropdown');
+                accountDropdowns.forEach(function(dropdown) {
+                    dropdown.classList.remove('active');
+                });
+            }
+        });
+    </script>
 </body>
 </html>

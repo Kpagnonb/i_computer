@@ -4,11 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     addToCartButtons.forEach(button => {
         button.addEventListener('click', async (event) => {
             const id = event.target.getAttribute('data-id');
+            const type = event.target.getAttribute('data-type');
+
             const response = await fetch('add_to_cart.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
+                body: JSON.stringify({ id: id, type: type })
             });
+
             const result = await response.json();
             if (result.success) {
                 // Mettre à jour le compteur du panier

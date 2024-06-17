@@ -9,11 +9,9 @@ if (!isset($_SESSION['client_id'])) {
     exit;
 }
 
-
 $client_id = $_SESSION['client_id'];
 
 try {
-
     // Récupérer les informations du client
     $stmt_client = $pdo_utilisateur->prepare("SELECT * FROM client WHERE id = :id");
     $stmt_client->execute(['id' => $client_id]);
@@ -22,11 +20,12 @@ try {
     // Récupérer les articles du panier depuis la session
     $cartItems = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];
 
+
     // Parcourir les articles du panier et ajouter le chemin de l'image
     foreach ($cartItems as &$item) {
         $type_produit = isset($item['type_produit']) ? $item['type_produit'] : null;
         $id_produit = $item['IdProduit'];
-    
+
         // Déterminer la table et le chemin d'image en fonction du type de produit
         switch ($type_produit) {
             case 'ordinateur':
@@ -42,24 +41,28 @@ try {
                 $sql_image = "";
                 break;
         }
-    
+
         if (!empty($sql_image)) {
             $stmt_image = $pdo_produit->prepare($sql_image);
             $stmt_image->execute(['id_produit' => $id_produit]);
             $image_path = $stmt_image->fetchColumn();
+
             // Assurez-vous que le chemin d'image est correctement formé
             if ($image_path) {
                 // Construire le chemin complet de l'image si nécessaire
-                // Par exemple, si $image_path est juste le nom du fichier, vous devez concaténer avec le chemin relatif.
-                $item['image_path'] = '../utilisateur/images/' . $image_path; // Assurez-vous que 'images/' est correct selon votre structure de dossier.
+                $item['image_path'] = '../utilisateur/' . $image_path; // Assurez-vous que '../utilisateur/' est correct selon votre structure de dossier.
             } else {
                 // Gérez le cas où aucune image n'est trouvée, peut-être une image par défaut ?
                 $item['image_path'] = '../utilisateur/images/default.jpg'; // Chemin vers une image par défaut
             }
+
+            // Debugging output
+            echo 'Product ID: ' . $id_produit . ' Image Path: ' . $item['image_path'] . '<br>';
         }
     }
     unset($item);
-    
+
+
     // Suggestions de produits
     $suggestions = [];
 
@@ -104,6 +107,7 @@ try {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -113,6 +117,35 @@ try {
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/panier.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script> <!-- Inclusion de SweetAlert2 pour les messages -->
+    <style>
+        .btn-remove {
+            margin-right: 5px;
+        }
+        .quantity-cell {
+        display: flex;
+        align-items: center;
+        }
+
+        .quantity-btn {
+            background-color: #6c757d;
+            color: #ffffff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .quantity-btn:hover {
+            background-color: #495057;
+        }
+
+        .quantity-text {
+            margin: 0 10px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -134,16 +167,27 @@ try {
                                 <th>Prix</th>
                                 <th>Quantité</th>
                                 <th>Sous-total</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($cartItems as $item): ?>
                                 <tr>
-                                    <td><img src="<?= htmlspecialchars($item['image_path']) ?>" alt="<?= htmlspecialchars($item['Nom']) ?>" class="img-thumbnail" style="width: 100px; height: 100px;"></td>
+                                    <td>
+                                        <img src="<?= htmlspecialchars($item['image_path']) ?>" class="img-thumbnail" style="width: 100px; height: 100px;">
+                                    </td>
                                     <td><?= htmlspecialchars($item['Nom']) ?></td>
                                     <td><?= htmlspecialchars($item['Prix']) ?> FCFA</td>
-                                    <td><?= htmlspecialchars($item['quantite']) ?></td>
+                                    <td class="quantity-cell">
+                                        <button class="quantity-btn" onclick="changeQuantity('<?= $item['IdProduit'] ?>', 'decrement')">-</button>
+                                        <span class="quantity-text"><?= htmlspecialchars($item['quantite']) ?></span>
+                                        <button class="quantity-btn" onclick="changeQuantity('<?= $item['IdProduit'] ?>', 'increment')">+</button>
+                                    </td>
                                     <td><?= htmlspecialchars($item['Prix'] * $item['quantite']) ?> FCFA</td>
+                                    <td>
+                                        <!-- Bouton "Retirer" pour supprimer un article du panier -->
+                                        <button class="btn btn-danger btn-remove" onclick="removeFromCart(<?= $item['IdProduit'] ?>)">Retirer</button>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -153,7 +197,11 @@ try {
             <div class="total-section mt-3">
                 <h5 class="text-end">Total: <?= htmlspecialchars($total) ?> FCFA</h5>
             </div>
-            <a href="paiement.php" class="btn btn-primary mt-3">Valider la commande</a>
+            <div class="text-end mt-3">
+                <button class="btn btn-secondary" onclick="emptyCart()">Vider le Panier</button>
+                <a href="produit.php" class="btn btn-primary">Poursuivre l'Achat</a>
+                <a href="paiement.php" class="btn btn-success">Valider la commande</a>
+            </div>
         </section>
 
         <section class="suggestions">
@@ -172,5 +220,135 @@ try {
             </div>
         </section>
     </div>
+
+    <script>
+        // Fonction pour retirer un article du panier
+        function removeFromCart(productId) {
+            Swal.fire({
+                title: 'Êtes-vous sûr(e) ?',
+                text: "Vous ne pourrez pas annuler cette action !",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Oui, retirer du panier'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Utilisation de fetch pour effectuer une requête POST
+                    fetch('remove_from_cart.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ id: productId }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Rafraîchir la page ou mettre à jour le panier
+                            window.location.reload();
+                        } else {
+                            Swal.fire({
+                                title: 'Erreur',
+                                text: data.message,
+                                icon: 'error',
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        Swal.fire({
+                            title: 'Erreur',
+                            text: 'Une erreur s\'est produite lors de la communication avec le serveur.',
+                            icon: 'error',
+                        });
+                    });
+                }
+            });
+        }
+
+        // Fonction pour vider le panier
+        function emptyCart() {
+            Swal.fire({
+                title: 'Êtes-vous sûr(e) de vouloir vider votre panier ?',
+                text: "Cette action est irréversible !",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Oui, vider le panier'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Utilisation de fetch pour effectuer une requête POST
+                    fetch('empty_cart.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Rafraîchir la page ou mettre à jour le panier
+                            window.location.reload();
+                        } else {
+                            Swal.fire({
+                                title: 'Erreur',
+                                text: data.message,
+                                icon: 'error',
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        Swal.fire({
+                            title: 'Erreur',
+                            text: 'Une erreur s\'est produite lors de la communication avec le serveur.',
+                            icon: 'error',
+                        });
+                    });
+                }
+            });
+        }
+        // Fonction pour changer la quantité d'un article dans le panier
+        function changeQuantity(productId, action) {
+            // Préparer les données à envoyer dans la requête
+            const data = {
+                id: productId,
+                action: action
+            };
+
+            // Utilisation de fetch pour effectuer une requête POST
+            fetch('update_cart_quantity.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Rafraîchir la page ou mettre à jour le panier après modification
+                    window.location.reload();
+                } else {
+                    Swal.fire({
+                        title: 'Erreur',
+                        text: data.message,
+                        icon: 'error',
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                Swal.fire({
+                    title: 'Erreur',
+                    text: 'Une erreur s\'est produite lors de la communication avec le serveur.',
+                    icon: 'error',
+                });
+            });
+        }
+
+    </script>
 </body>
 </html>

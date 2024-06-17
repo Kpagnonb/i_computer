@@ -11,7 +11,7 @@ if (!isset($data['id']) || !isset($data['type'])) {
 }
 
 $id = $data['id'];
-$type = $data['type']; 
+$type = $data['type'];
 
 // Initialisation du panier dans la session s'il n'existe pas encore
 if (!isset($_SESSION['cart'])) {
@@ -59,20 +59,19 @@ try {
 
     // Vérification si le produit a été trouvé
     if ($product) {
-        $product['quantite'] = 1; // Initialisation de la quantité à 1
-
         // Vérification si le produit est déjà dans le panier
         $found = false;
         foreach ($_SESSION['cart'] as &$item) {
             if ($item['IdProduit'] == $product['IdProduit']) {
-                $item['quantite']++;
+                // Si le produit est déjà dans le panier, ne rien faire
                 $found = true;
                 break;
             }
         }
 
-        // Si le produit n'est pas encore dans le panier, l'ajouter
+        // Si le produit n'est pas encore dans le panier, l'ajouter avec une quantité initiale de 1
         if (!$found) {
+            $product['quantite'] = 1; // Initialisation de la quantité à 1
             $_SESSION['cart'][] = $product;
         }
 

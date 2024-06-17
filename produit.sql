@@ -51,10 +51,6 @@ CREATE TABLE `images` (
   `chemin_image` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Déchargement des données de la table `images`
---
-
 INSERT INTO `images` (`id`, `id_produit`, `chemin_image`) VALUES
 (4, 2, '../utilisateur/images/hp15-2.jpg'),
 (5, 2, '../utilisateur/images/hp15-1.jpg'),
@@ -63,11 +59,6 @@ INSERT INTO `images` (`id`, `id_produit`, `chemin_image`) VALUES
 (8, 3, '../utilisateur/images/lenovo15-2.jpg'),
 (9, 3, '../utilisateur/images/lenovo15-1.jpg');
 
--- --------------------------------------------------------
-
---
--- Structure de la table `images_peripheriques_reseaux`
---
 
 CREATE TABLE `images_peripheriques_reseaux` (
   `id` int(11) NOT NULL,
@@ -75,18 +66,9 @@ CREATE TABLE `images_peripheriques_reseaux` (
   `chemin_image` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Déchargement des données de la table `images_peripheriques_reseaux`
---
 
 INSERT INTO `images_peripheriques_reseaux` (`id`, `id_produit`, `chemin_image`) VALUES
 (4, 1, '../utilisateur/images/canon-1.webp');
-
--- --------------------------------------------------------
-
---
--- Structure de la table `images_telephonie`
---
 
 CREATE TABLE `images_telephonie` (
   `id` int(11) NOT NULL,

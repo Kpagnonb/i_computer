@@ -21,7 +21,8 @@ try {
         $mot_de_passe = password_hash($_POST['mot_de_passe'], PASSWORD_BCRYPT);
         $telephone = $_POST['telephone'];
 
-        $sql = "INSERT INTO clients (titre, nom, prenom, adresse, ville, code_postal, email, mot_de_passe, telephone) 
+        // Préparation et exécution de la requête d'insertion
+        $sql = "INSERT INTO client (titre, nom, prenom, adresse, ville, code_postal, email, mot_de_passe, telephone) 
                 VALUES (:titre, :nom, :prenom, :adresse, :ville, :code_postal, :email, :mot_de_passe, :telephone)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
@@ -36,8 +37,15 @@ try {
             ':telephone' => $telephone
         ]);
 
+        // Récupération de l'ID du client nouvellement inscrit
+        $client_id = $pdo->lastInsertId();
+
+        // Mise à jour de la session avec l'ID du client
+        $_SESSION['client_id'] = $client_id;
+
+        // Redirection vers la page d'accueil du client (index.php dans ce cas)
         $_SESSION['success'] = "Inscription réussie !";
-        header('Location: index.php');
+        header('Location: utilisateur/index.php');
         exit;
     }
 } catch (PDOException $e) {
@@ -57,6 +65,12 @@ try {
 <body>
 <div class="container mt-5">
     <h1>Inscription</h1>
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success" role="alert">
+            <?php echo $_SESSION['success']; ?>
+        </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
     <form action="inscription.php" method="POST">
         <div class="mb-3">
             <label for="titre" class="form-label">Titre</label>
