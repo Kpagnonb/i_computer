@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($admin && password_verify($mot_de_passe, $admin['mot_de_passe'])) {
-            $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['admin'] = $admin['id'];
             header('Location: admin/dashboard_admin.php');
             exit;
         }
